@@ -4,7 +4,7 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity nano_controlador_top is
     Generic(LEN_PROGRAM_ADDRESS  : natural := 10;
-           LEN_PROGRAM_STACK     : natural := 6);
+           LEN_PROGRAM_STACK     : natural := 4);
     Port ( clk                   : in  STD_LOGIC;
            rst                   : in  STD_LOGIC;
            data_address_bus      : out STD_LOGIC_VECTOR (12 downto 0);
@@ -18,6 +18,34 @@ end nano_controlador_top;
 architecture Behavioral of nano_controlador_top is
    constant LEN_DATA_ADDRESS     : natural := 13;
    constant LEN_DATA             : natural := 8;
+   
+   --componentes que necesito predeclarar.
+   component fsm_nano_controlador is
+    Port ( clk                   : in   STD_LOGIC;
+           rst                   : in   STD_LOGIC;
+           opcode                : in   STD_LOGIC_VECTOR (4 downto 0);
+           a_zero                : in   STD_LOGIC;
+           z_zero                : in   STD_LOGIC;
+           program_mux_pc_sel    : out  STD_LOGIC;
+           pc_load               : out  STD_LOGIC;
+           pc_inc                : out  STD_LOGIC;
+           program_stack_push    : out  STD_LOGIC;
+           program_stack_pop     : out  STD_LOGIC;
+           data_address_sel      : out  STD_LOGIC_VECTOR (1 downto 0);
+           x_load                : out  STD_LOGIC;
+           x_inc                 : out  STD_LOGIC;
+           y_load                : out  STD_LOGIC;
+           y_inc                 : out  STD_LOGIC;
+           z_load                : out  STD_LOGIC;
+           z_dec                 : out  STD_LOGIC;
+           data_mux_alu_sel      : out  STD_LOGIC;
+           alu_cmd               : out  STD_LOGIC_VECTOR (1 downto 0);
+           a_load                : out  STD_LOGIC;
+           a_inc                 : out  STD_LOGIC;
+           a_dec                 : out  STD_LOGIC;
+           wr                    : out  STD_LOGIC);
+   end component;
+
    
    --Señales asociadas al PC
    signal program_address        : std_logic_vector(LEN_PROGRAM_ADDRESS-1 downto 0);
@@ -42,10 +70,15 @@ architecture Behavioral of nano_controlador_top is
    signal a_load, a_inc, a_dec   : std_logic;
    signal a_zero                 : std_logic;
    signal alu_cmd                : std_logic_vector(1 downto 0);
+   
+   --Si quiero o no usar blockrams para la tabla de decodificación.
+   --attribute ram_style : string;
+   --attribute ram_style of fsm_nano_controlador : component is "block";
+   
 begin
 
 --FSM de Control
-fsm_control:   entity   work.fsm_nano_controlador(Behavioral)
+fsm_control:   fsm_nano_controlador
                port map(clk                  => clk,
                         rst                  => rst,
                         opcode               => program_data_bus(17 downto LEN_DATA_ADDRESS),

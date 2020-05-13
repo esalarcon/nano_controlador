@@ -74,7 +74,16 @@ BEGIN
          when "0000000011" => program_data_bus <= "00100"&"0000011111110"; 
          when "0000000100" => program_data_bus <= "01001"&"0000000000000";
          when "0000000101" => program_data_bus <= "00010"&"0000000000000";         
-         when "0000000110" => program_data_bus <= "01010"&"0000000000000";         
+         when "0000000110" => program_data_bus <= "01010"&"0000000000000";    
+         when "0000000111" => program_data_bus <= "01101"&"0000000001000";
+         when "0000001000" => program_data_bus <= "10000"&"0001000000000";
+         when "0000001001" => program_data_bus <= "01101"&"0000000001010";
+         when "0000001010" => program_data_bus <= "00001"&"0000000000000"; --MOV A,0x00
+         when "0000001011" => program_data_bus <= "01000"&"0000000000010"; --MOV Z,0x02
+         when "0000001100" => program_data_bus <= "00010"&"0000000000000"; --INC A
+         when "0000001101" => program_data_bus <= "10010"&"0000000001100"; --LOOP anterior
+         when "0000001110" => program_data_bus <= "00011"&"0000000000000"; --DEC A        
+         when "1000000000" => program_data_bus <= "10001"&"0000000000000";
          when others       => program_data_bus <= "00000"&"0000000000000";
       end case;
    end process;
