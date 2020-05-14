@@ -127,34 +127,34 @@ begin
       if(rising_edge(clk)) then
          case opcode is
             when "00000" => deco_opcode <= "000000000000000000001";  --NOP
-            when "00001" => deco_opcode <= "000000000000000001001";  --MOV A,CTE
+            when "00001" => deco_opcode <= "000000000000000001001";  --MOV A,$CTE
             when "00010" => deco_opcode <= "000000000000000010001";  --INC A
             when "00011" => deco_opcode <= "000000000000000100001";  --DEC A
-            when "00100" => deco_opcode <= "000000000000001000001";  --MOV X,CTE
+            when "00100" => deco_opcode <= "000000000000001000001";  --MOV X,$CTE
             when "00101" => deco_opcode <= "000000000000010000001";  --INC X
-            when "00110" => deco_opcode <= "000000000000100000001";  --MOV Y,CTE
+            when "00110" => deco_opcode <= "000000000000100000001";  --MOV Y,$CTE
             when "00111" => deco_opcode <= "000000000001000000001";  --INC Y
-            when "01000" => deco_opcode <= "000000000010000000001";  --MOV Z,CTE
-            when "01001" => deco_opcode <= "000000011000000000001";  --STR X
-            when "01010" => deco_opcode <= "000000001000000001101";  --LDR X
-            when "01011" => deco_opcode <= "000000011100000000001";  --STR Y
-            when "01100" => deco_opcode <= "000000001100000001101";  --LDR Y
+            when "01000" => deco_opcode <= "000000000010000000001";  --MOV Z,$CTE
+            when "01001" => deco_opcode <= "000000011000000000001";  --MOV X,A
+            when "01010" => deco_opcode <= "000000001000000001101";  --MOV A,X
+            when "01011" => deco_opcode <= "000000011100000000001";  --MOV Y,A
+            when "01100" => deco_opcode <= "000000001100000001101";  --MOV A,Y
             when "01101" => deco_opcode <= "000000000000000000010";  --JMP CTE
             when "01110" => deco_opcode <= "000000100000000000000";  --JZ  CTE
             when "01111" => deco_opcode <= "000001000000000000000";  --JNZ CTE
             when "10000" => deco_opcode <= "000010000000000000010";  --CALL
             when "10001" => deco_opcode <= "000100000000000000011";  --RET
             when "10010" => deco_opcode <= "001000000000000000000";  --LOOP CTE
-            when "10011" => deco_opcode <= "000000000001010000001";  --INCXY  
-            when "10100" => deco_opcode <= "010000000000000001001";  --AND A, #CTE
+            when "10011" => deco_opcode <= "010000000000000001101";  --MOV A, DIR  
+            when "10100" => deco_opcode <= "010000000000000001001";  --AND A, $CTE
             when "10101" => deco_opcode <= "010000001000000001101";  --AND A, [X]
             when "10110" => deco_opcode <= "010000001100000001101";  --AND A, [Y]
             when "10111" => deco_opcode <= "010000000000000001101";  --AND A, DIR
-            when "11000" => deco_opcode <= "100000000000000001001";  --OR  A, #CTE
+            when "11000" => deco_opcode <= "100000000000000001001";  --OR  A, $CTE
             when "11001" => deco_opcode <= "100000001000000001101";  --OR  A, [X]
             when "11010" => deco_opcode <= "100000001100000001101";  --OR  A, [Y]
             when "11011" => deco_opcode <= "100000000000000001101";  --OR  A, DIR
-            when "11100" => deco_opcode <= "110000000000000001001";  --XOR A, #CTE
+            when "11100" => deco_opcode <= "110000000000000001001";  --XOR A, $CTE
             when "11101" => deco_opcode <= "110000001000000001101";  --XOR A, [X]
             when "11110" => deco_opcode <= "110000001100000001101";  --XOR A, [Y]
             when "11111" => deco_opcode <= "110000000000000001101";  --XOR A, DIR
