@@ -126,7 +126,7 @@ begin
    begin
       if(rising_edge(clk)) then
          case opcode is
-            when "00000" => deco_opcode <= "000000000000000000001";  --NOP
+            when "00000" => deco_opcode <= "000000010000000000001";  --MOV DIR,A
             when "00001" => deco_opcode <= "000000000000000001001";  --MOV A,$CTE
             when "00010" => deco_opcode <= "000000000000000010001";  --INC A
             when "00011" => deco_opcode <= "000000000000000100001";  --DEC A
