@@ -40,6 +40,17 @@ ARCHITECTURE behavior OF nc_tb IS
    -- Others
    type ram is array (natural range <>) of std_logic_vector(7 downto 0);
    signal memram  : ram(255 downto 0) := (others => (x"01"));
+   
+   -- Decodificación de direcciones
+   constant CS_RAM                     : std_logic_vector(1 downto 0) := "00";
+   constant CS_TIMER                   : std_logic_vector(1 downto 0) := "01";
+   constant CS_PORT                    : std_logic_vector(1 downto 0) := "10";
+   
+   
+   signal wr_ram, wr_port, wr_timer    :  std_logic;     
+   signal data_ram, data_timer         :  std_logic_vector(7 downto 0);
+   signal leds                         :  std_logic_vector(7 downto 0);
+   
 BEGIN
  
 	-- Instantiate the Unit Under Test (UUT)
@@ -63,42 +74,84 @@ BEGIN
 		wait for clk_period/2;
    end process;
  
-   --Memoria de programa.
+   wr_ram   <= wr when CS_RAM   = data_address_bus(9 downto 8) else '0';
+   wr_port  <= wr when CS_PORT  = data_address_bus(9 downto 8) else '0';
+   wr_timer <= wr when CS_TIMER = data_address_bus(9 downto 8) else '0';
+ 
+   --decodificación
+   with data_address_bus(9 downto 8) select
+      data_data_in_bus  <= data_ram    when CS_RAM,
+                           data_timer  when CS_TIMER,
+                           x"55"       when others;
+   
+   
+   --puerto de salida.
    process
    begin
       wait until rising_edge(clk);
-      case program_address_bus is
-         when "0000000000" => program_data_bus <= "00001"&"0000010101010";
-         when "0000000001" => program_data_bus <= "00010"&"0000000000000";
-         when "0000000010" => program_data_bus <= "00011"&"0000000000000"; 
-         when "0000000011" => program_data_bus <= "00100"&"0000011111110"; 
-         when "0000000100" => program_data_bus <= "01001"&"0000000000000";
-         when "0000000101" => program_data_bus <= "00010"&"0000000000000";         
-         when "0000000110" => program_data_bus <= "01010"&"0000000000000";    
-         when "0000000111" => program_data_bus <= "01101"&"0000000001000";
-         when "0000001000" => program_data_bus <= "10000"&"0001000000000";
-         when "0000001001" => program_data_bus <= "01101"&"0000000001010";
-         when "0000001010" => program_data_bus <= "00001"&"0000000000000"; --MOV A,0x00
-         when "0000001011" => program_data_bus <= "01000"&"0000000000010"; --MOV Z,0x02
-         when "0000001100" => program_data_bus <= "00010"&"0000000000000"; --INC A
-         when "0000001101" => program_data_bus <= "10010"&"0000000001100"; --LOOP anterior
-         when "0000001110" => program_data_bus <= "00011"&"0000000000000"; --DEC A        
-         when "1000000000" => program_data_bus <= "10001"&"0000000000000";
-         when others       => program_data_bus <= "00000"&"0000000000000";
-      end case;
+      if(wr_port = '1') then
+         leds <= data_data_out_bus;
+      end if; 
    end process;
- 
+  
+   --Timer.
+   process
+      variable tc       : std_logic := '0';
+      variable cuenta   : integer range 0 to 255 := 99;
+   begin
+      wait until rising_edge(clk);
+      if(wr_timer = '1') then
+         cuenta := 99;
+         tc     := '0';
+      end if;
+      if(cuenta /= 0) then
+         cuenta := cuenta-1;
+      end if;
+      if(cuenta = 0) then
+         tc := '1';
+      end if;
+      data_timer <= "0000000"&tc;
+   end process;
+
    process
       variable i  : natural range 0 to 255;
    begin
       wait until rising_edge(clk);
       i:= to_integer(unsigned(data_address_bus(7 downto 0)));
-      if(wr = '1') then
+      if(wr_ram = '1') then
          memram(i) <= data_data_out_bus;
       end if;
-      data_data_in_bus <= memram(i);
+      data_ram <= memram(i);
    end process;
+
  
+   --Memoria de programa.
+   --(Generada por el ensamblador)
+   process
+   begin
+      wait until rising_edge(clk);
+      case program_address_bus is
+         when "0000000000" => program_data_bus <= "00001" & "0000000000001";
+         when "0000000001" => program_data_bus <= "00000" & "0000011111110";
+         when "0000000010" => program_data_bus <= "00000" & "0001000000000";
+         when "0000000011" => program_data_bus <= "00001" & "0000000010100";
+         when "0000000100" => program_data_bus <= "00000" & "0000011111111";
+         when "0000000101" => program_data_bus <= "00001" & "0000000000001";
+         when "0000000110" => program_data_bus <= "10111" & "0000100000000";
+         when "0000000111" => program_data_bus <= "01110" & "0000000000101";
+         when "0000001000" => program_data_bus <= "00000" & "0000100000000";
+         when "0000001001" => program_data_bus <= "10011" & "0000011111111";
+         when "0000001010" => program_data_bus <= "00011" & "0000000000000";
+         when "0000001011" => program_data_bus <= "00000" & "0000011111111";
+         when "0000001100" => program_data_bus <= "01111" & "0000000000101";
+         when "0000001101" => program_data_bus <= "00001" & "0000000000001";
+         when "0000001110" => program_data_bus <= "11111" & "0000011111110";
+         when "0000001111" => program_data_bus <= "01101" & "0000000000001";
+         when others       => program_data_bus <= "00000" & "0000000000000";
+      end case;
+   end process;
+
+
 
    -- Stimulus process
    stim_proc: process

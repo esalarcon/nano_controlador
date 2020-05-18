@@ -35,8 +35,10 @@ architecture Behavioral of fsm_nano_controlador is
    signal deco_opcode            :  std_logic_vector(20 downto 0);
    signal execute, write_val     :  std_logic;
    signal fetch, pc_load_cond    :  std_logic;
-   signal is_loading, loop_pass  :  std_logic;
+   signal is_loading, cond_pass  :  std_logic;
    signal jump, jz, jnz, is_loop :  std_logic;
+   signal loop_pass, jz_pass     :  std_logic;
+   signal jnz_pass               :  std_logic;
 begin
                               
    process(clk)
@@ -97,8 +99,10 @@ begin
    loop_pass            <=  deco_opcode(18) and z_zero;
    jz                   <=  deco_opcode(14) and (a_zero);
    jnz                  <=  deco_opcode(15) and (not a_zero);
+   jz_pass              <=  deco_opcode(14) and ( not a_zero);
+   jnz_pass             <=  deco_opcode(15) and (a_zero);
    pc_load_cond         <= (deco_opcode(1) or jz or jnz or is_loop);
-
+   cond_pass            <=  loop_pass or jz_pass or jnz_pass;
 
    -- Señales sincronizadas con el ciclo de búsqueda
    z_dec                <= (not z_zero) and fetch when opcode = "10010" else '0';
@@ -116,7 +120,7 @@ begin
    program_stack_push   <=  deco_opcode(16) and execute;
 
    -- Señales sincronizadas con el clico de escritura
-   pc_inc               <= (deco_opcode(0) or loop_pass) and write_val;
+   pc_inc               <= (deco_opcode(0) or cond_pass) and write_val;
    wr                   <=  deco_opcode(13) and write_val;
    program_stack_pop    <=  deco_opcode(17) and write_val;
    
@@ -145,7 +149,7 @@ begin
             when "10000" => deco_opcode <= "000010000000000000010";  --CALL
             when "10001" => deco_opcode <= "000100000000000000011";  --RET
             when "10010" => deco_opcode <= "001000000000000000000";  --LOOP CTE
-            when "10011" => deco_opcode <= "010000000000000001101";  --MOV A, DIR  
+            when "10011" => deco_opcode <= "000000000000000001101";  --MOV A, DIR  
             when "10100" => deco_opcode <= "010000000000000001001";  --AND A, $CTE
             when "10101" => deco_opcode <= "010000001000000001101";  --AND A, [X]
             when "10110" => deco_opcode <= "010000001100000001101";  --AND A, [Y]
