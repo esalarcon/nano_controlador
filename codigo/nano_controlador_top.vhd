@@ -12,6 +12,8 @@ entity nano_controlador_top is
            data_data_out_bus     : out STD_LOGIC_VECTOR (7 downto 0);
            program_data_bus      : in  STD_LOGIC_VECTOR (17 downto 0);
            data_data_in_bus      : in  STD_LOGIC_VECTOR (7 downto 0);
+           bus_request           : in  STD_LOGIC;
+           bus_request_ack       : out STD_LOGIC;
            wr                    : out STD_LOGIC);
 end nano_controlador_top;
 
@@ -43,6 +45,8 @@ architecture Behavioral of nano_controlador_top is
            a_load                : out  STD_LOGIC;
            a_inc                 : out  STD_LOGIC;
            a_dec                 : out  STD_LOGIC;
+           bus_request           : in   STD_LOGIC;
+           bus_request_ack       : out  STD_LOGIC;
            wr                    : out  STD_LOGIC);
    end component;
 
@@ -101,6 +105,8 @@ fsm_control:   fsm_nano_controlador
                         a_load               => a_load,
                         a_inc                => a_inc,
                         a_dec                => a_dec,
+                        bus_request          => bus_request,
+                        bus_request_ack      => bus_request_ack,
                         wr                   => wr);
                
 

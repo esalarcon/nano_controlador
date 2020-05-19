@@ -26,11 +26,13 @@ entity fsm_nano_controlador is
            a_load                : out  STD_LOGIC;
            a_inc                 : out  STD_LOGIC;
            a_dec                 : out  STD_LOGIC;
+           bus_request           : in   STD_LOGIC;
+           bus_request_ack       : out  STD_LOGIC; 
            wr                    : out  STD_LOGIC);
 end fsm_nano_controlador;
 
 architecture Behavioral of fsm_nano_controlador is
-   type status is (FETCHING, EXECUTING, UPDATING, WRITING);
+   type status is (FETCHING, EXECUTING, UPDATING, WRITING, DMA);
    signal actual, futuro         :  status;
    signal deco_opcode            :  std_logic_vector(20 downto 0);
    signal execute, write_val     :  std_logic;
@@ -57,13 +59,27 @@ begin
    -- todas las instrucciones lo respetan. 
    -- Por lo que para tener 1MIP necesito una FCLOCK
    -- de 4MHZ.
-   process(actual)
+   -- Se puede pedir DMA, que se evalua en el ciclo de 
+   -- escritura para asegurarse de terminar la ejecución
+   -- de la instrucción actual.
+   process(actual, bus_request)
    begin
       case actual is
          when FETCHING  => futuro <= EXECUTING;
          when EXECUTING => futuro <= UPDATING;
          when UPDATING  => futuro <= WRITING;
-         when WRITING   => futuro <= FETCHING;
+         when WRITING   => 
+                           if(bus_request = '1') then
+                              futuro <= DMA;
+                           else
+                              futuro <= FETCHING;
+                           end if;
+         when DMA       =>
+                           if(bus_request = '1') then
+                              futuro <= DMA;
+                           else
+                              futuro <= FETCHING; 
+                           end if;
       end case;
    end process;
    
@@ -71,21 +87,30 @@ begin
    begin
       case actual is
          when FETCHING  => 
-                           execute   <= '0';                          
-                           write_val <= '0';
-                           fetch     <= '1';
+                           execute           <= '0';                          
+                           write_val         <= '0';
+                           fetch             <= '1';
+                           bus_request_ack   <= '0';
          when EXECUTING => 
-                           execute   <= not is_loading;
-                           write_val <= '0';
-                           fetch     <= '0';
+                           execute           <= not is_loading;
+                           write_val         <= '0';
+                           fetch             <= '0';
+                           bus_request_ack   <= '0';
          when UPDATING  => 
-                           execute   <= is_loading;
-                           write_val <= '1';
-                           fetch     <= '0';                           
+                           execute           <= is_loading;
+                           write_val         <= '1';
+                           fetch             <= '0';        
+                           bus_request_ack   <= '0';                           
          when WRITING   =>
-                           execute   <= '0';
-                           write_val <= '0';
-                           fetch     <= '0';
+                           execute           <= '0';
+                           write_val         <= '0';
+                           fetch             <= '0';
+                           bus_request_ack   <= '0';
+         when DMA       =>
+                           execute           <= '0';
+                           write_val         <= '0';
+                           fetch             <= '0';
+                           bus_request_ack   <= '1';
       end case;
    end process;
    

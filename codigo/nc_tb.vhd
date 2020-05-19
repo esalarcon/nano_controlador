@@ -18,6 +18,8 @@ ARCHITECTURE behavior OF nc_tb IS
          data_data_out_bus    : OUT    std_logic_vector(7 downto 0);
          program_data_bus     : IN     std_logic_vector(17 downto 0);
          data_data_in_bus     : IN     std_logic_vector(7 downto 0);
+         bus_request          : IN     std_logic;
+         bus_request_ack      : OUT    std_logic;
          wr                   : OUT    std_logic);
     END COMPONENT;
     
@@ -27,12 +29,14 @@ ARCHITECTURE behavior OF nc_tb IS
    signal rst : std_logic := '0';
    signal program_data_bus : std_logic_vector(17 downto 0) := (others => '0');
    signal data_data_in_bus : std_logic_vector(7 downto 0) := (others => '0');
-
+   signal  bus_request     : std_logic := '0';
+         
  	--Outputs
    signal data_address_bus : std_logic_vector(12 downto 0);
    signal program_address_bus : std_logic_vector(9 downto 0);
    signal data_data_out_bus : std_logic_vector(7 downto 0);
    signal wr : std_logic;
+   signal bus_request_ack : std_logic;
 
    -- Clock period definitions
    constant clk_period : time := 10 ns;
@@ -55,15 +59,16 @@ BEGIN
  
 	-- Instantiate the Unit Under Test (UUT)
    uut: nano_controlador_top PORT MAP (
-          clk => clk,
-          rst => rst,
-          data_address_bus => data_address_bus,
+          clk                 => clk,
+          rst                 => rst,
+          data_address_bus    => data_address_bus,
           program_address_bus => program_address_bus,
-          data_data_out_bus => data_data_out_bus,
-          program_data_bus => program_data_bus,
-          data_data_in_bus => data_data_in_bus,
-          wr => wr
-        );
+          data_data_out_bus   => data_data_out_bus,
+          program_data_bus    => program_data_bus,
+          data_data_in_bus    => data_data_in_bus,
+          bus_request         => bus_request,
+          bus_request_ack     => bus_request_ack,
+          wr                  => wr);
 
    -- Clock process definitions
    clk_process :process
@@ -159,6 +164,11 @@ BEGIN
       rst <= '1';
       wait for clk_period*2;	
       rst <= '0';
+      wait for clk_period*10001;
+      bus_request <= '1';
+      wait until rising_edge(bus_request_ack);
+      wait for clk_period*500;
+      bus_request <= '0';
       wait;
    end process;
 
